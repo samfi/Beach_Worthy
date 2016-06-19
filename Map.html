@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>GeoRSS Layers</title>
+     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+     <script src="js/main.js"></script>
+     <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+    <div id="map"></div>
+    <div ng-app="beachApp">
+
+
+    <!--- <label><input type="checkbox" id="wind_dir"> Wind Direction</label><br> -->
+    <div ng-controller="MenuController as menu">
+       <div id="sidemenu">
+       <ul>
+          <li ng-repeat="item in menu.items">
+            <a id="{{item.name}}" href="#" ng-click="menu.buttonClicked(item)" ng-class="{selected : selected == item.name}">
+            <img ng-src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/ICONS_48px/{{item.img}}.png"></img>
+            </a>
+          </li>
+        </ul>
+       </div>
+
+      <div ng-show="selected == 'weather'" id="popup" ng-controller="PopupController as popup" style="">
+
+
+        <span ng-show="selected == 'flags'"> 
+        <h3>Cool</h3>
+        </span>
+
+        <span ng-show="selected == 'wind'">
+         <h3>YAY</h3>
+        </span>
+
+        <span ng-show="selected == 'jellyfish'">
+        
+       </span>
+
+        <span id="weather" ng-show="selected == 'weather'">
+          <h2 class="popup_title"> {{selected}}</h2>
+          <hr />
+          <img ng-src="{{weather_img}}"></img>
+          <span id=temp>
+              <strong>{{temp}}℃</strong>
+          </span>
+          <ul>
+            <li><strong>Visability: </strong> {{visibility}} km </li>
+            <li><strong>Precipitation: </strong> {{precip_today}} mm </li>
+          </ul>
+        </span>
+
+        <span ng-show="selected == 'swell'">
+        <h3>SAM</h3>
+        </span>
+
+     
+      </div>
+    
+</div>
+
+    <!---
+  <li><a id="flag" href="#"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Flag.png"></img></a></li>
+  <li><a href="#jellyfish"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Jellyfish.png"></img></a></li>
+  <li><a href="#shark"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Shark.png"></img></a></li>
+  <li><a href="#weather"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Sun.png"></img></a></li>
+  <li><a href="#swell"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Swell.png"></img></a></li>
+  <li><a href="#currents"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Swimmer.png"></img></a></li>
+  <li><a id="wind" href="#"><img src="https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach/Map/Images/Windy.png"></img></a></li>
+  </ul>
+  -->
+
+    </div>
+
+ <script>
+  var init_center = {lat: -33.9, lng: 151.2}
+  function CenterControl(controlDiv, map) {
+
+        // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.style.border = '2px solid #fff';
+        controlUI.style.borderRadius = '3px';
+        controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+        controlUI.style.cursor = 'pointer';
+        controlUI.style.marginBottom = '22px';
+        controlUI.style.textAlign = 'center';
+        controlUI.title = 'Click to recenter the map';
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '5px';
+        controlText.style.paddingRight = '5px';
+        controlText.innerHTML = '&nbsp;&nbsp; Back &nbsp;&nbsp;';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          window.location.reload();
+        });
+
+  }
+
+
+var map;
+var centerControlDiv;
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+          center: init_center,
+          zoom: 10,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+       });  
+  centerControlDiv = document.createElement('div');
+  var centerControl = new CenterControl(centerControlDiv, map);
+  centerControlDiv.index = 1;
+  initIcons();
+  setMarkers();
+}
+
+function initBackButton() {
+
+}
+
+function initIcons(){
+  beachFlagShape = {
+    coords: [1, 1, 1, 20, 18, 20, 18, 1],
+    type: 'poly'
+  };
+  beachFlag = {
+    url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+    // This marker is 20 pixels wide by 32 pixels high.
+    size: new google.maps.Size(20, 32),
+    // The origin for this image is (0, 0).
+    origin: new google.maps.Point(0, 0),
+    // The anchor for this image is the base of the flagpole at (0, 32).
+    anchor: new google.maps.Point(0, 32),
+    rotation: 20
+  };
+  // Data for the markers consisting of a name, a LatLng and a zIndex for the
+  // order in which these markers should display on top of each other.
+  beaches = [
+  {
+    "name" : 'Bondi Beach',
+    "lat": -33.894953, 
+    "lng": 151.279459,
+    "zIndex" : 4,
+    "windDirPos": [-33.892738, 151.277952]
+ },
+ {
+  "name" :'Coogee Beach', 
+  "lat" : -33.923036, 
+  "lng" : 151.259052,
+  "zIndex" : 5
+ },
+  {
+  "name": 'Cronulla Beach', 
+  "lat" : -34.028249, 
+  "lng" : 151.157507,
+  "zIndex" : 3
+ },
+ {
+  "name" : 'Manly Beach',
+  "lat" : -33.80010128657071, 
+  "lng" : 151.28747820854187, 
+  "zIndex": 2
+},
+{ "name" : 'Maroubra Beach', "lat" : -33.950198, "lng" : 151.259302, "zIndex" : 1 }
+];
+  
+  /*
+  'Cronulla Beach', -34.028249, 151.157507, 3],*/
+  
+  
+
+}
+
+var windmarker;
+function clearLinks(){
+  if (windMarker){
+    windMarker.setMap(null);
+  }
+}
+function setupLinks() {
+  $('a#wind').click(function(){
+    clearLinks();
+    displayWind();
+  });
+}
+function displayWind(){
+   windMarker = new google.maps.Marker({
+      position: {lat: beach.windDirPos[0], lng: beach.windDirPos[1]},
+      icon: beachFlag,
+      shape: beachFlagShape,
+      title: beach.name,
+      zIndex: beach.zIndex,
+      map: map
+   });
+}
+
+function showMenu(){
+  var widgetDiv = document.getElementById('sidemenu');
+  map.controls[google.maps.ControlPosition.LEFT_CENTER].push(widgetDiv);
+  var popup = document.getElementById('popup');
+  map.controls[google.maps.ControlPosition.LEFT_CENTER].push(popup);
+  map.controls[google.maps.ControlPosition.RIGHT_TOP].push(centerControlDiv);
+}
+
+function setMarkers() {
+  
+  // Adds markers to the map.
+
+  // Marker sizes are expressed as a Size of X,Y where the origin of the image
+  // (0,0) is located in the top left of the image.
+
+  // Origins, anchor positions and coordinates of the marker increase in the X
+  // direction to the right and in the Y direction down.
+ 
+  // Shapes define the clickable region of the icon. The type defines an HTML
+  // <area> element 'poly' which traces out a polygon as a series of X,Y points.
+  // The final coordinate closes the poly by connecting to the first coordinate.
+  
+  for (var i = 0; i < beaches.length; i++) {
+    var beach = beaches[i];
+    var marker = new google.maps.Marker({
+      position: {lat: beach.lat, lng: beach.lng},
+      map: map,
+      icon: beachFlag,
+      shape: beachFlagShape,
+      title: beach.name,
+      zIndex: beach.zIndex
+    });
+    (function(beach,marker){
+        marker.addListener('click', function() {
+          window.beach = beach;
+          map.setZoom(16);
+          map.setCenter(marker.getPosition());
+          showMenu();
+          $.getScript("https://s3-ap-southeast-2.amazonaws.com/thisprojectisabeach-lambda/data.js");
+      });
+    })(beach,marker);
+  };
+}
+  
+  
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBHLw710hj0Zxt9CxDsJiDNToOJ-oo33XM&callback=initMap&libraries=visualization"
+    ></script>
+    <script   src="http://code.jquery.com/jquery-3.0.0.min.js"   integrity="sha256-JmvOoLtYsmqlsWxa7mDSLMwa6dZ9rrIdtrrVYRnDRH0="   crossorigin="anonymous"></script>  
+  
+
+  </body>
+</html>

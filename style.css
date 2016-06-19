@@ -1,0 +1,62 @@
+html, body {
+height: 100%;
+margin: 0;
+padding: 0;
+}
+
+#map {
+height: 100%;
+}
+#popup{
+box-shadow: rgba(0, 0, 0, 0.298039) 0px 1px 4px -1px;
+background-color: white; 
+font-family: Roboto, Arial;
+margin: 15px;
+width: 300px;
+height: 350px;
+padding-left: 20px;
+margin-left:65px;
+margin-top:-192px;
+}
+.popup_title {
+  font-size: large;
+}
+#temp {
+/*  float: right;*/
+font-size: 70px;
+}
+#weather li {
+font-size: 20px;
+}
+ul {
+  list-style-type: none;
+}
+#sidemenu ul {
+margin: 0;
+padding: 0;
+background-color: #f1f1f1;
+}
+
+
+
+li a {
+display: block;
+color: #000;
+padding: 8px 8px 8px 8px;
+height: 48px;
+width: 48px;
+overflow: hidden;
+}
+
+li a img {
+}
+
+li a.selected {
+background-color: #555;
+}
+
+/* Change the link color on hover */
+li a:hover {
+background-color: #555;
+color: white;
+}
